@@ -107,7 +107,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
         const c1 = src[pos];
         if (c1 === undefined) throw new Error('Malformed Yaz0 (assert: c1 != undef)');
         while (search < pos) {
-            let lastSearchRange = search;
+            const lastSearchRange = search;
             search = src.subarray(search, pos).indexOf(c1);
             if (search == -1) {
                 break;
@@ -140,7 +140,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
 }
 
 function compressBuffer(src: Buffer, level: number): Buffer {
-    let searchRange;
+    let searchRange: number;
     if (!level) {
         searchRange = 0;
     } else if (level < 9) {
@@ -150,12 +150,12 @@ function compressBuffer(src: Buffer, level: number): Buffer {
     }
 
     let pos = 0;
-    let srcEnd = src.length;
+    const srcEnd = src.length;
 
-    let dest = new Array<number>();
+    const dest = new Array<number>();
     let codeBytePos = 0;
 
-    let maxLen = 0x111;
+    const maxLen = 0x111;
 
     while (pos < srcEnd) {
         codeBytePos = dest.length;
