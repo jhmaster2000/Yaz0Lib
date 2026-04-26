@@ -34,29 +34,37 @@ function decompressBuffer(src: Buffer): Buffer {
                 found = true;
                 break;
             }
+            if (code === undefined) throw new Error('Malformed Yaz0 buffer (assert: code != undef)');
 
             if (code & 0x80) {
-                dest[destPos] = src[srcPos];
+                const b = src[srcPos];
+                if (b === undefined) throw new Error('Malformed Yaz0 buffer (assert: b != undef)')
+                dest[destPos] = b;
                 destPos += 1;
                 srcPos += 1;
             } else {
-                let b1 = src[srcPos];
+                const b1 = src[srcPos];
                 srcPos += 1;
-                let b2 = src[srcPos];
+                const b2 = src[srcPos];
                 srcPos += 1;
+                if (b1 === undefined || b2 === undefined) throw new Error('Malformed Yaz0 buffer (assert: b1|b2 != undef)');
 
                 let copySrc = destPos - ((b1 & 0x0f) << 8 | b2) - 1;
 
                 let n = b1 >> 4;
                 if (!n) {
-                    n = src[srcPos] + 0x12;
+                    const _b = src[srcPos];
+                    if (_b === undefined) throw new Error('Malformed Yaz0 buffer (assert: _b != undef)');
+                    n = _b + 0x12;
                     srcPos += 1;
                 } else {
                     n += 2;
                 }
 
                 for (let _ = 0; _ < n; _++) {
-                    dest[destPos] = dest[copySrc];
+                    const copy_b = dest[copySrc];
+                    if (copy_b === undefined) throw new Error('Malformed Yaz0 buffer (assert: copy_b != undef)');
+                    dest[destPos] = copy_b;
                     destPos += 1;
                     copySrc += 1;
                 }
@@ -97,6 +105,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
         }
 
         const c1 = src[pos];
+        if (c1 === undefined) throw new Error('Malformed Yaz0 (assert: c1 != undef)');
         while (search < pos) {
             let lastSearchRange = search;
             search = src.subarray(search, pos).indexOf(c1);
@@ -173,8 +182,10 @@ function compressBuffer(src: Buffer, level: number): Buffer {
 
                 pos += foundLen;
             } else {
-                dest[codeBytePos] |= 1 << (7 - i);
-                dest.push(src[pos]);
+                if (dest[codeBytePos] === undefined) throw new Error('Malformed Yaz0 (assert: dest[codeBytePos] != undef)');
+                if (src[pos] === undefined) throw new Error('Malformed Yaz0 (assert: src[pos] != undef)');
+                dest[codeBytePos]! |= 1 << (7 - i);
+                dest.push(src[pos]!);
                 pos++;
             }
         }
