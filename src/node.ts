@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
-import { compressYaz0, decompressYaz0 } from './index.js';
+import { compressYaz0, decompressYaz0 } from './main.js';
+
+export * from './main.js';
 
 /**
  * Read a file from a path and compress it with Yaz0.
