@@ -9,16 +9,18 @@
  * @param data The buffer to check
  * @returns {boolean} True if the buffer is a compressed Yaz0 file
  */
-export function isYazCompressed(data: Buffer): boolean {
-    const magic = data.subarray(0, 4).toString();
+export function isYazCompressed(data: Uint8Array): boolean {
+    const magic = new TextDecoder().decode(data.subarray(0, 4));
     return magic === 'Yaz0' || magic === 'Yaz1';
 }
 
-function decompressBuffer(src: Buffer): Buffer {
+function decompressBuffer(src: Uint8Array): Uint8Array {
     const srcEnd = src.length;
 
-    const destEnd = src.readUInt32BE(4);
-    const dest = Buffer.alloc(destEnd);
+    const src_dv = new DataView(src.buffer, src.byteOffset, src.byteLength);
+
+    const destEnd = src_dv.getUint32(4);
+    const dest = new Uint8Array(destEnd);
 
     let code = src[16];
 
@@ -82,7 +84,7 @@ function decompressBuffer(src: Buffer): Buffer {
     return dest;
 }
 
-function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange: number, srcEnd: number) {
+function compressionSearch(src: Uint8Array, pos: number, maxLen: number, searchRange: number, srcEnd: number) {
     let foundLen = 1;
     let found = 0;
 
@@ -127,7 +129,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
     return { found, foundLen };
 }
 
-function compressBuffer(src: Buffer, level: number): Buffer {
+function compressBuffer(src: Uint8Array, level: number): Uint8Array {
     let searchRange: number;
     if (!level) {
         searchRange = 0;
@@ -177,7 +179,7 @@ function compressBuffer(src: Buffer, level: number): Buffer {
         }
     }
 
-    return Buffer.from(dest);
+    return new Uint8Array(dest);
 }
 
 /**
@@ -188,15 +190,17 @@ function compressBuffer(src: Buffer, level: number): Buffer {
  * @param level=0 The compression level
  * @returns {buffer} The compressed buffer
  **/
-export function compressYaz0(data: Buffer, alignment = 0, level = 0): Buffer {
+export function compressYaz0(data: Uint8Array, alignment = 0, level = 0): Uint8Array {
     const compressedData = compressBuffer(data, level);
 
-    const result = Buffer.alloc(4 + 4 + 4 + 4 + compressedData.length);
-    result.write('Yaz0', 0, 4);
-    result.writeUInt32BE(data.length, 4);
-    result.writeUInt32BE(alignment, 8);
-    result.writeUInt32BE(0, 12);
-    compressedData.copy(result, 16);
+    const result = new Uint8Array(4 + 4 + 4 + 4 + compressedData.length);
+    const result_dv = new DataView(result.buffer, result.byteOffset, result.byteLength);
+
+    result.set(new TextEncoder().encode('Yaz0'), 0);
+    result_dv.setUint32(4, data.length);
+    result_dv.setUint32(8, alignment);
+    result_dv.setUint32(12, 0);
+    result.set(compressedData, 16);
 
     return result;
 }
@@ -208,7 +212,7 @@ export function compressYaz0(data: Buffer, alignment = 0, level = 0): Buffer {
  * @param data The compressed buffer
  * @returns {buffer} The decompressed buffer
  */
-export function decompressYaz0(data: Buffer): Buffer {
+export function decompressYaz0(data: Uint8Array): Uint8Array {
     if (!isYazCompressed(data)) throw new Error('Not Yaz0 compressed!');
 
     return decompressBuffer(data);
