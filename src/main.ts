@@ -7,7 +7,7 @@
  * Check if a buffer is a compressed with Yaz.
  *
  * @param data The buffer to check
- * @returns {boolean} True if the buffer is a compressed Yaz0 file
+ * @returns True if the buffer is a compressed Yaz0 file
  */
 export function isYazCompressed(data: Uint8Array): boolean {
     const magic = new TextDecoder().decode(data.subarray(0, 4));
@@ -188,7 +188,7 @@ function compressBuffer(src: Uint8Array, level: number): Uint8Array {
  * @param data The buffer to compress
  * @param alignment=0 The alignment
  * @param level=0 The compression level
- * @returns {buffer} The compressed buffer
+ * @returns The compressed buffer
  **/
 export function compressYaz0(data: Uint8Array, alignment = 0, level = 0): Uint8Array {
     const compressedData = compressBuffer(data, level);
@@ -210,7 +210,7 @@ export function compressYaz0(data: Uint8Array, alignment = 0, level = 0): Uint8A
  *
  * @throws error Will throw an error if the data is not compressed with Yaz0
  * @param data The compressed buffer
- * @returns {buffer} The decompressed buffer
+ * @returns The decompressed buffer
  */
 export function decompressYaz0(data: Uint8Array): Uint8Array {
     if (!isYazCompressed(data)) throw new Error('Not Yaz0 compressed!');

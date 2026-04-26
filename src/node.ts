@@ -9,7 +9,7 @@ export * from './main.js';
  * @param path The filepath
  * @param alignment=0 The alignment
  * @param level=0 The compression level
- * @returns {string} The output path. Filename: filename + '.compressed' + original file extension
+ * @returns The output path. Filename: filename + '.compressed' + original file extension
  */
 export function compressYaz0File(path: string, alignment = 0, level = 0): string {
     const data = fs.readFileSync(path);
@@ -24,7 +24,7 @@ export function compressYaz0File(path: string, alignment = 0, level = 0): string
  * Read a file from a path and decompress it with Yaz0.
  *
  * @param path The filepath
- * @returns {string} The output path. Filename: filename + '.decompressed' + original file extension
+ * @returns The output path. Filename: filename + '.decompressed' + original file extension
  */
 export function decompressYaz0File(path: string): string {
     const data = fs.readFileSync(path);
