@@ -13,7 +13,7 @@ import * as fs from "fs";
  */
 export function isYazCompressed(data: Buffer): boolean {
     const magic = data.slice(0, 4).toString();
-    return magic == "Yaz0" || magic == "Yaz1";
+    return magic === "Yaz0" || magic === "Yaz1";
 }
 
 function decompressBuffer(src: Buffer): Buffer {
@@ -109,7 +109,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
         while (search < pos) {
             const lastSearchRange = search;
             search = src.subarray(search, pos).indexOf(c1);
-            if (search == -1) {
+            if (search === -1) {
                 break;
             }
             search += lastSearchRange;
@@ -117,7 +117,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
             let cmp1 = search + 1;
             let cmp2 = pos + 1;
 
-            while (cmp2 < cmpEnd && src[cmp1] == src[cmp2]) {
+            while (cmp2 < cmpEnd && src[cmp1] === src[cmp2]) {
                 cmp1++;
                 cmp2++;
             }
@@ -127,7 +127,7 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
             if (foundLen < len) {
                 foundLen = len;
                 found = search;
-                if (foundLen == maxLen) {
+                if (foundLen === maxLen) {
                     break;
                 }
             }
