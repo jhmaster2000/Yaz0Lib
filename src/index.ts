@@ -11,7 +11,7 @@ import * as fs from 'node:fs';
  * @returns {boolean} True if the buffer is a compressed Yaz0 file
  */
 export function isYazCompressed(data: Buffer): boolean {
-    const magic = data.slice(0, 4).toString();
+    const magic = data.subarray(0, 4).toString();
     return magic === 'Yaz0' || magic === 'Yaz1';
 }
 
@@ -226,7 +226,7 @@ export function decompressYaz0(data: Buffer): Buffer {
 export function compressYaz0File(path: string, alignment = 0, level = 0): string {
     const data = fs.readFileSync(path);
     const compressed = compressYaz0(data, alignment, level);
-    const output = path.replace(/\.[^/.]+$/, '') + '.compressed' + path.substr(path.lastIndexOf('.'));
+    const output = path.replace(/\.[^/.]+$/, '') + '.compressed' + path.slice(path.lastIndexOf('.'));
     fs.writeFileSync(output, compressed);
 
     return output;
@@ -241,7 +241,7 @@ export function compressYaz0File(path: string, alignment = 0, level = 0): string
 export function decompressYaz0File(path: string): string {
     const data = fs.readFileSync(path);
     const decompressed = decompressYaz0(data);
-    const output = path.replace(/\.[^/.]+$/, '') + '.decompressed' + path.substr(path.lastIndexOf('.'));
+    const output = path.replace(/\.[^/.]+$/, '') + '.decompressed' + path.slice(path.lastIndexOf('.'));
     fs.writeFileSync(output, decompressed);
 
     return output;
