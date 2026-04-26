@@ -2,8 +2,7 @@
  This is a js library to handle Yaz0/Yaz1 compression and decompression.
  Ported from Python's libyaz0, by MasterVermilli0n/AboodXD
  */
-
-import * as fs from "fs";
+import * as fs from 'node:fs';
 
 /**
  * Check if a buffer is a compressed with Yaz.
@@ -13,7 +12,7 @@ import * as fs from "fs";
  */
 export function isYazCompressed(data: Buffer): boolean {
     const magic = data.slice(0, 4).toString();
-    return magic === "Yaz0" || magic === "Yaz1";
+    return magic === 'Yaz0' || magic === 'Yaz1';
 }
 
 function decompressBuffer(src: Buffer): Buffer {
@@ -49,7 +48,7 @@ function decompressBuffer(src: Buffer): Buffer {
                 srcPos += 1;
                 if (b1 === undefined || b2 === undefined) throw new Error('Malformed Yaz0 buffer (assert: b1|b2 != undef)');
 
-                let copySrc = destPos - ((b1 & 0x0f) << 8 | b2) - 1;
+                let copySrc = destPos - ((b1 & 0x0F) << 8 | b2) - 1;
 
                 let n = b1 >> 4;
                 if (!n) {
@@ -74,9 +73,8 @@ function decompressBuffer(src: Buffer): Buffer {
         }
 
         if (!found) {
-            if (srcPos >= srcEnd || destPos >= destEnd) {
-                break;
-            }
+            if (srcPos >= srcEnd || destPos >= destEnd) break;
+
             code = src[srcPos];
             srcPos += 1;
         }
@@ -89,29 +87,22 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
     let foundLen = 1;
     let found = 0;
 
-    if (!searchRange) {
-        return {found, foundLen};
-    }
+    if (!searchRange) return { found, foundLen };
 
     if (pos + 2 < srcEnd) {
         let search = pos - searchRange;
-        if (search < 0) {
-            search = 0;
-        }
+        if (search < 0) search = 0;
 
         let cmpEnd = pos + maxLen;
-        if (cmpEnd > srcEnd) {
-            cmpEnd = srcEnd;
-        }
+        if (cmpEnd > srcEnd) cmpEnd = srcEnd;
 
         const c1 = src[pos];
         if (c1 === undefined) throw new Error('Malformed Yaz0 (assert: c1 != undef)');
         while (search < pos) {
             const lastSearchRange = search;
             search = src.subarray(search, pos).indexOf(c1);
-            if (search === -1) {
-                break;
-            }
+            if (search === -1) break;
+
             search += lastSearchRange;
 
             let cmp1 = search + 1;
@@ -127,16 +118,14 @@ function compressionSearch(src: Buffer, pos: number, maxLen: number, searchRange
             if (foundLen < len) {
                 foundLen = len;
                 found = search;
-                if (foundLen === maxLen) {
-                    break;
-                }
+                if (foundLen === maxLen) break;
             }
 
             search++;
         }
     }
 
-    return {found, foundLen};
+    return { found, foundLen };
 }
 
 function compressBuffer(src: Buffer, level: number): Buffer {
@@ -144,7 +133,7 @@ function compressBuffer(src: Buffer, level: number): Buffer {
     if (!level) {
         searchRange = 0;
     } else if (level < 9) {
-        searchRange = 0x10e0 * level / 9 - 0x0e0;
+        searchRange = 0x10E0 * level / 9 - 0x0E0;
     } else {
         searchRange = 0x1000;
     }
@@ -162,11 +151,9 @@ function compressBuffer(src: Buffer, level: number): Buffer {
         dest.push(0);
 
         for (let i = 0; i < 8; i++) {
-            if (pos >= srcEnd) {
-                break;
-            }
+            if (pos >= srcEnd) break;
 
-            const {found, foundLen} = compressionSearch(src, pos, maxLen, searchRange, srcEnd);
+            const { found, foundLen } = compressionSearch(src, pos, maxLen, searchRange, srcEnd);
 
             if (foundLen > 2) {
                 const delta = pos - found - 1;
@@ -206,7 +193,7 @@ export function compressYaz0(data: Buffer, alignment = 0, level = 0): Buffer {
     const compressedData = compressBuffer(data, level);
 
     const result = Buffer.alloc(4 + 4 + 4 + 4 + compressedData.length);
-    result.write("Yaz0", 0, 4);
+    result.write('Yaz0', 0, 4);
     result.writeUInt32BE(data.length, 4);
     result.writeUInt32BE(alignment, 8);
     result.writeUInt32BE(0, 12);
@@ -223,9 +210,7 @@ export function compressYaz0(data: Buffer, alignment = 0, level = 0): Buffer {
  * @returns {buffer} The decompressed buffer
  */
 export function decompressYaz0(data: Buffer): Buffer {
-    if (!isYazCompressed(data)) {
-        throw new Error("Not Yaz0 compressed!");
-    }
+    if (!isYazCompressed(data)) throw new Error('Not Yaz0 compressed!');
 
     return decompressBuffer(data);
 }
@@ -241,7 +226,7 @@ export function decompressYaz0(data: Buffer): Buffer {
 export function compressYaz0File(path: string, alignment = 0, level = 0): string {
     const data = fs.readFileSync(path);
     const compressed = compressYaz0(data, alignment, level);
-    const output = path.replace(/\.[^/.]+$/, "") + ".compressed" + path.substr(path.lastIndexOf("."));
+    const output = path.replace(/\.[^/.]+$/, '') + '.compressed' + path.substr(path.lastIndexOf('.'));
     fs.writeFileSync(output, compressed);
 
     return output;
@@ -256,7 +241,7 @@ export function compressYaz0File(path: string, alignment = 0, level = 0): string
 export function decompressYaz0File(path: string): string {
     const data = fs.readFileSync(path);
     const decompressed = decompressYaz0(data);
-    const output = path.replace(/\.[^/.]+$/, "") + ".decompressed" + path.substr(path.lastIndexOf("."));
+    const output = path.replace(/\.[^/.]+$/, '') + '.decompressed' + path.substr(path.lastIndexOf('.'));
     fs.writeFileSync(output, decompressed);
 
     return output;
